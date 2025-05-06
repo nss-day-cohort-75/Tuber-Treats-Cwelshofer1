@@ -160,6 +160,22 @@ List<TuberOrder> tuberOrder = new List<TuberOrder> {
         CustomerId = 3,
         TuberDriverId = 3,
         DeliveredOnDate = new DateTime (2025, 2, 4)    
+        },
+    
+    new TuberOrder {
+        Id = 5,
+        OrderPlacedOnDate = new DateTime (2025, 2, 4),
+        CustomerId = 5,
+        TuberDriverId = 3,
+        DeliveredOnDate = new DateTime (2025, 2, 4)    
+        },
+
+      new TuberOrder {
+        Id = 6,
+        OrderPlacedOnDate = new DateTime (2025, 2, 4),
+        CustomerId = 6,
+        TuberDriverId = 3,
+        DeliveredOnDate = new DateTime (2025, 2, 4)    
         } 
 };
 
@@ -329,6 +345,151 @@ TuberOrder completedOrder = tuberOrder.FirstOrDefault(to => to.Id == tuberId);
 completedOrder.DeliveredOnDate = DateTime.Now;
 
 });
+
+app.MapGet("/toppings", () => 
+{
+    
+return topping.Select(t => new ToppingDTO {
+    Id = t.Id,
+    Name = t.Name
+});
+});
+
+
+app.MapGet("/toppings/{id}", (int id) => 
+{
+    
+    Topping toppings = topping.FirstOrDefault(t => t.Id == id);
+   
+    return new ToppingDTO 
+    {
+        Id = toppings.Id,
+        Name = toppings.Name
+    };
+    });
+
+
+app.MapGet("/tuberToppings", () => 
+{
+    
+return tuberTopping.Select(tt => new TuberToppingDTO {
+    Id = tt.Id,
+    TuberOrderId = tt.TuberOrderId,
+    ToppingId = tt.ToppingId
+});
+});
+
+app.MapPut("/tubertoppings/{id}", (int id, TuberTopping tuberToppings) =>
+{
+    TuberTopping updatedTuberTopping = tuberTopping.FirstOrDefault(tt => tt.Id == id);
+
+      if (updatedTuberTopping == null)
+    {
+        return Results.NotFound();
+    }
+    
+    updatedTuberTopping.ToppingId = tuberToppings.ToppingId;
+
+    return Results.NoContent();
+});
+
+app.MapPost("/tuberToppings/{id}", (int id, TuberTopping tuberToppings ) => {
+
+tuberToppings.Id = tuberTopping.Max(t => t.Id) + 1;
+tuberTopping.Add(tuberToppings);
+
+
+return Results.Created($"/tuberToppings/{tuberToppings.Id}", new TuberToppingDTO {
+
+    Id = tuberToppings.Id,
+    TuberOrderId = tuberToppings.TuberOrderId,
+    ToppingId = tuberToppings.ToppingId
+    
+});
+
+});
+
+app.MapDelete("/tuberToppings/{id}", (int id ) =>
+{
+TuberTopping TuberToppingToRemove = tuberTopping.FirstOrDefault(t => t.Id == id);
+
+tuberTopping.Remove(TuberToppingToRemove);
+return Results.NoContent();
+});
+
+app.MapGet("/customers", () => 
+{
+    
+return customer.Select(c => new CustomerDTO {
+    Id = c.Id,
+    Name = c.Name,
+    Address = c.Address
+});
+});
+
+app.MapGet("/customers/{id}", (int id) => 
+{
+Customer  customers = customer.FirstOrDefault(c => c.Id == id);
+    
+return new CustomerDTO {
+    Id = customers.Id,
+    Name = customers.Name,
+    Address = customers.Address,
+    TuberOrders = tuberOrder.Where(to => to.CustomerId == customers.Id)
+    .Select(to => new TuberOrderDTO 
+   {
+        Id = to.Id,
+        OrderPlacedOnDate = to.OrderPlacedOnDate,
+        CustomerId = to.CustomerId,
+        TuberDriverId = to.TuberDriverId,
+        DeliveredOnDate = to.DeliveredOnDate,
+        Topping = null,
+        TuberDriver = null,
+        Customer = null,
+            }).ToList()
+};
+});
+
+app.MapPost("/customers" , (Customer customers) => {
+
+customers.Id = customer.Max(c => c.Id) + 1;
+customer.Add(customers);
+
+
+return Results.Created($"/customers/{customers.Id}", new CustomerDTO {
+
+    Id = customers.Id,
+    Name = customers.Name,
+    Address = customers.Address,
+    TuberOrders = tuberOrder.Where(to => to.CustomerId == customers.Id)
+    .Select(to => new TuberOrderDTO 
+   {
+        Id = to.Id,
+        OrderPlacedOnDate = to.OrderPlacedOnDate,
+        CustomerId = to.CustomerId,
+        TuberDriverId = to.TuberDriverId,
+        DeliveredOnDate = to.DeliveredOnDate,
+        Topping = null,
+        TuberDriver = null,
+        Customer = null,
+            }).ToList()
+
+});
+});
+
+app.MapDelete("/customers/{id}", (int id ) =>
+{
+Customer CustomerToRemove = customer.FirstOrDefault(c => c.Id == id);
+
+customer.Remove(CustomerToRemove);
+return Results.NoContent();
+});
+
+
+
+
+
+
 
 
 
