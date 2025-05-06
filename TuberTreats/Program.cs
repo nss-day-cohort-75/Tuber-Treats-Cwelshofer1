@@ -485,13 +485,39 @@ customer.Remove(CustomerToRemove);
 return Results.NoContent();
 });
 
+app.MapGet("/tuberDrivers", () => 
+{
+    
+return tuberDriver.Select(td => new TuberDriverDTO {
+    Id = td.Id,
+    Name = td.Name,
+    
+});
+});
 
+app.MapGet("/tuberDrivers/{id}", (int id) => 
+{
+TuberDriver tuberDrivers = tuberDriver.FirstOrDefault(td => td.Id == id);
+    
+return new TuberDriverDTO {
+    Id = tuberDrivers.Id,
+    Name = tuberDrivers.Name,
+    TuberDeliveries = tuberOrder.Where(to => to.TuberDriverId == tuberDrivers.Id)
+        .Select(to => new TuberOrderDTO 
+            {
+                Id = to.Id,
+                OrderPlacedOnDate = to.OrderPlacedOnDate,
+                CustomerId = to.CustomerId,
+                TuberDriverId = to.TuberDriverId,
+                DeliveredOnDate = to.DeliveredOnDate,
+                Topping = null,
+                TuberDriver = null,
+                Customer = null
 
+            }).ToList()
 
-
-
-
-
+};
+});
 
 app.Run();
 //don't touch or move this!
